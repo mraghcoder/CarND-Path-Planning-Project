@@ -1,6 +1,36 @@
 # CarND-Path-Planning-Project
 Self-Driving Car Engineer Nanodegree Program
-   
+
+## Objective
+The objective of this project is to generate a path for the car to follow and navigate on a highway in the presence of other cars safely. The Ego-car should drive around 50 miles per hour, accelerate, decelerate and change lanes based on the road and traffic conditions bound by the following criteria:
+* Stay within the lane
+* Speed limit: 50 MPH
+* Max acceleration: 10 m/sec^2
+* Max jerk: 10 m/sec^3
+* No collisions
+
+## Project Implementation
+The approach used for implementing this project was mostly based on the project walk-through video. The main components of this implementation are:
+* Sensor fusion - to understand the distance, speed of other cars around the car
+* Path Planning - Implement a state machine for lane change
+* Trajectory planning - Generate a trajectory of way points to generate a smooth trajectory for the car to follow
+
+### Sensor Fusion
+The data gathered from various sensors such as Radar, Lidar and cameras are available as sensor fusion data. This data is in a 2d vector of cars and then that car's [car's unique ID, car's x position in map coordinates, car's y position in map coordinates, car's x velocity in m/s, car's y velocity in m/s, car's s position in frenet coordinates, car's d position in frenet coordinates. Using this data, we determine the distance of the closest car in the Ego car's lane ahead, closest car ahead and behind in the lanes right and/or left to the current lane. Using the distance of closest car ahead, we determine if the car is too close and should decelerate or change lanes. The information on the distance of the closest cars ahead and behind in the adjacent lanes helps decide if it is safe to change to the other lane. The speed of the car ahead in the same lane is used to set the target speed for the Ego car. This logic is implemented in lines 270-331 in main.cpp.
+
+### Path Planning
+In this module a state machine is implemented to plan the path the car should take based on the output of the sensor fusion module. Based on the distance of the cars ahead and behind in the adjacent lanes, it is determined if it is safe to change lanes if the car ahead is within a certain range. A distance based cost is used to determine the lane change. In addition, the logic brings the car to the center lane when clear. This logic is implemented in lines 333- 367 in main.cpp.
+
+### Trajectory Generation
+The trajectory generation module generates a list of waypoints for the car to follow at each time instance. We use Frenet co-ordinates(s,d) instead of cartesian co-ordinates (x,y) to simplify the trajectory generation. The Frenet co-ordinates convey the longitudinal (s) and lateral (d) displacement of the car on the track and can convey the exact location of the car on the track. The waypoints are determined using a couple of points from the previous path and interpolating a path up to a horizon distance. The interpolation is done using a cubic spline interpolator and generates a smooth trajectory to follow. This logic is implemented in lines 369-474 in main.cpp.
+
+## Result
+The car is able to drive around the highway track successfully with no collisions. Without exceeding the speed limit and changing lanes when safe, the entire track of 4.32 miles is covered in around 5 minutes.
+
+![alt text](FullLoop.png "Full Loop")
+
+![alt text](laneChange.png "Lane Change")
+
 ### Simulator.
 You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases).
 
@@ -38,13 +68,13 @@ Here is the data provided from the Simulator to the C++ Program
 #### Previous path data given to the Planner
 
 //Note: Return the previous list but with processed points removed, can be a nice tool to show how far along
-the path has processed since last time. 
+the path has processed since last time.
 
 ["previous_path_x"] The previous list of x points previously given to the simulator
 
 ["previous_path_y"] The previous list of y points previously given to the simulator
 
-#### Previous path's end s and d values 
+#### Previous path's end s and d values
 
 ["end_path_s"] The previous list's last point's frenet s value
 
@@ -52,7 +82,7 @@ the path has processed since last time.
 
 #### Sensor Fusion Data, a list of all other car's attributes on the same side of the road. (No Noise)
 
-["sensor_fusion"] A 2d vector of cars and then that car's [car's unique ID, car's x position in map coordinates, car's y position in map coordinates, car's x velocity in m/s, car's y velocity in m/s, car's s position in frenet coordinates, car's d position in frenet coordinates. 
+["sensor_fusion"] A 2d vector of cars and then that car's [car's unique ID, car's x position in map coordinates, car's y position in map coordinates, car's x velocity in m/s, car's y velocity in m/s, car's s position in frenet coordinates, car's d position in frenet coordinates.
 
 ## Details
 
@@ -82,7 +112,7 @@ A really helpful resource for doing this project and creating smooth trajectorie
   * Run either `install-mac.sh` or `install-ubuntu.sh`.
   * If you install from source, checkout to commit `e94b6e1`, i.e.
     ```
-    git clone https://github.com/uWebSockets/uWebSockets 
+    git clone https://github.com/uWebSockets/uWebSockets
     cd uWebSockets
     git checkout e94b6e1
     ```
@@ -137,4 +167,3 @@ still be compilable with cmake and make./
 
 ## How to write a README
 A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
