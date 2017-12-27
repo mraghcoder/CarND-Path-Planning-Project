@@ -323,6 +323,8 @@ int main() {
 
               }
             }
+            if (ref_vel > 40 && closest_car_ahead > 60)
+              target_vel = 49.7;
 
             // Adjust velocity based on on target
             if (ref_vel > target_vel)
@@ -330,28 +332,40 @@ int main() {
             else if (ref_vel < target_vel)
               ref_vel += 0.224;
 
+            if (ref_vel > 50)
+              ref_vel = 50;
+
+            // Check if lane change is complete before changing lanes
+            bool lane_change_done = false;
+            if (car_d >(2+(4*lane)-1.2) && car_d < (2+(lane*4)+1.2))
+              lane_change_done = true;
+            // else
+            //   std::cout << "Lane change incomplete" << car_d << '\n';
+
+
+
             // Lane change criteria and logic
-            if (too_close && ref_vel < 45)
+            if (too_close && (ref_vel < 45) && (ref_vel > 25) && lane_change_done)
             {
-              if (lane == 0 && closest_car_ahead_right > 30 && closest_car_behind_right > 20 && closest_car_ahead_right > closest_car_ahead)
+              if ((lane == 0) && (closest_car_ahead_right > 30) && (closest_car_behind_right > 20) && (closest_car_ahead_right > closest_car_ahead))
               {
                 lane = 1;
                 std::cout << "Lane changed from 0 to 1" << "\n" ;
                 lane_change = true;
               }
-              else if (lane == 1 && closest_car_ahead_left > 30 && closest_car_behind_left > 20 && closest_car_ahead_left > closest_car_ahead)
+              else if ((lane == 1) && (closest_car_ahead_left > 30) && (closest_car_behind_left > 20) && (closest_car_ahead_left > closest_car_ahead))
               {
                 lane = 0;
                 std::cout << "Lane changed from 1 to 0" << "\n" ;
                 lane_change = true;
               }
-              else if (lane == 1 && closest_car_ahead_right > 30 && closest_car_behind_right > 20 && closest_car_ahead_right > closest_car_ahead)
+              else if ((lane == 1) && (closest_car_ahead_right > 30) && (closest_car_behind_right > 20) && (closest_car_ahead_right > closest_car_ahead))
               {
                 lane = 2;
                 std::cout << "Lane changed from 1 to 2" << "\n" ;
                 lane_change = true;
               }
-              else if (lane == 2 && closest_car_ahead_left > 30 && closest_car_behind_left > 20 && closest_car_ahead_left > closest_car_ahead)
+              else if ((lane == 2) && (closest_car_ahead_left > 30) && (closest_car_behind_left > 20) && (closest_car_ahead_left > closest_car_ahead))
               {
                 lane = 1;
                 std::cout << "Lane changed from 2 to 1" << "\n" ;
@@ -359,7 +373,7 @@ int main() {
               }
             }
             // Try to change to center lane if clear
-            if (lane == 0 && closest_car_ahead_right > 30 && closest_car_behind_right > 20 && closest_car_ahead_right > closest_car_ahead)
+            if (lane_change_done && (lane == 0) && (ref_vel > 25) && (closest_car_ahead_right > 30) && (closest_car_behind_right > 20) && (closest_car_ahead_right > closest_car_ahead))
             {
               lane = 1;
               std::cout << "Lane changed from 0 to 1" << "\n" ;
@@ -400,6 +414,11 @@ int main() {
               double ref_x_prev = previous_path_x[prev_path_size-2];
               double ref_y_prev = previous_path_y[prev_path_size-2];
               ref_yaw = atan2(ref_y - ref_y_prev, ref_x - ref_x_prev);
+              if (prev_path_size >= 3) // Adding more based on discussion
+              {
+                ptsx.push_back(previous_path_x[prev_path_size-3]);
+                ptsy.push_back(previous_path_y[prev_path_size-3]);
+              }
               ptsx.push_back(ref_x_prev);
               ptsy.push_back(ref_y_prev);
               if (ref_yaw != 0)
@@ -413,19 +432,19 @@ int main() {
             vector<double> next_wp1;
             vector<double> next_wp2;
             // Create evenly spaced (30m apart) waypoints in Frenet coordinates
-            if (lane_change){
-              // In case of lane change use different waypoints for spline interpolation
-              // Helps with avoiding max accel exceeded during lane change
-              next_wp0 = getXY(car_s+50, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-              next_wp1 = getXY(car_s+70, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-              next_wp2 = getXY(car_s+90, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-              //std::cout << "Using 50-90 \n" ;
-            }
-            else{
+            // if (lane_change){
+            //   // In case of lane change use different waypoints for spline interpolation
+            //   // Helps with avoiding max accel exceeded during lane change
+            //   next_wp0 = getXY(car_s+50, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            //   next_wp1 = getXY(car_s+70, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            //   next_wp2 = getXY(car_s+90, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            //   //std::cout << "Using 50-90 \n" ;
+            // }
+            // else{
               next_wp0 = getXY(car_s+30, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
               next_wp1 = getXY(car_s+60, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
               next_wp2 = getXY(car_s+90, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-            }
+            // }
 
 
             ptsx.push_back(next_wp0[0]);
